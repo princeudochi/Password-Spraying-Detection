@@ -24,15 +24,15 @@ Confirmed SMB (445) open on the target.
 ```bash
 crackmapexec smb 10.0.2.200 -u users.txt -p passwords.txt
 ```
-`users.txt` contained 5 domain accounts (`Admin1`, `BigGen`, `NightMan`, `serv-app`, `Employee1`); `passwords.txt` contained 2 candidate passwords, keeping per-account attempts at or below a typical 3-attempt lockout policy.
+`users.txt` contained 5 domain accounts (`Admin1`, `BigGen`, `NightMan`, `serv-app`, `Employee1`); `passwords.txt` contained 5 candidate passwords, keeping per-account attempts at or below a typical 3-attempt lockout policy.
 
 One account (`Employee1`) was deliberately set to match a password in the list, to produce a realistic mixed result: several `STATUS_LOGON_FAILURE` responses and one successful authentication — rather than an all-fail run that doesn't reflect how a real spray plays out.
 
 **3. Post-compromise validation (using the successful credential)**
 ```bash
-crackmapexec smb 10.0.2.200 -u Employee1 -p 'Summer2026!' --shares
-crackmapexec smb 10.0.2.200 -u Employee1 -p 'Summer2026!' --users
-crackmapexec smb 10.0.2.200 -u Employee1 -p 'Summer2026!' -x "whoami"
+crackmapexec smb 10.0.2.200 -u Employee1 -p 'correctpasword!' --shares
+crackmapexec smb 10.0.2.200 -u Employee1 -p 'correctpassword!' --users
+crackmapexec smb 10.0.2.200 -u Employee1 -p correctpassword!' -x "whoami"
 ```
 Confirmed remote code execution against the target using the compromised account, and confirmed it was a domain account (`lab.local\Employee1`).
 
@@ -61,12 +61,12 @@ No results — consistent with no actual membership change having occurred.
 ```spl
 index=* EventCode=4625
 | eval Account_Name=mvfilter(Account_Name!="-")
-| bucket _time span=5m
+| bucket _time span=3m
 | stats dc(Account_Name) as distinct_accounts, count as total_attempts by _time, Source_Network_Address
-| where distinct_accounts >= 5
+
 ```
 
-**Logic:** flags any single source IP generating failed logons against 5+ distinct accounts inside a 5-minute window — the defining shape of a spray (many accounts, one source) rather than a brute force (one account, many attempts).
+**Logic:** flags any single source IP generating failed logons against 5+ distinct accounts inside a 3-minute window — the defining shape of a spray (many accounts, one source) rather than a brute force (one account, many attempts).
 
 ## Gotchas Hit and Fixed
 These were the real troubleshooting steps, not part of a tutorial:
